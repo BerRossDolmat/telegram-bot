@@ -6,6 +6,7 @@
                     <div class="input-group">
                         <span class="input-group-addon" id="basic-addon1">Message</span>
                         <input type="text" class="form-control" placeholder="Enter text" aria-label="Message" v-model="newMessage" @keyup.enter="sendMessage" aria-describedby="basic-addon1">
+                        <button v-on:click="sendMessage">SEND</button>
                     </div>
                     <p>Press Enter to send message</p>
 
@@ -40,11 +41,9 @@
             sendMessage() {
                 let messageText = this.newMessage;
                 this.newMessage = '';
-                if (!messageText) {
-                    this.messages = [];
+                if (!messageText.trim()) {
                     return;
                 }
-
                 this._addMessage(messageText);
 
                 $.ajax({

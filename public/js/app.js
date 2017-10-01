@@ -42076,6 +42076,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
 
 var $ = __webpack_require__(13);
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -42096,11 +42097,9 @@ var $ = __webpack_require__(13);
         sendMessage: function sendMessage() {
             var messageText = this.newMessage;
             this.newMessage = '';
-            if (!messageText) {
-                this.messages = [];
+            if (!messageText.trim()) {
                 return;
             }
-
             this._addMessage(messageText);
 
             $.ajax({
@@ -42168,7 +42167,9 @@ var render = function() {
                   _vm.newMessage = $event.target.value
                 }
               }
-            })
+            }),
+            _vm._v(" "),
+            _c("button", { on: { click: _vm.sendMessage } }, [_vm._v("SEND")])
           ]),
           _vm._v(" "),
           _c("p", [_vm._v("Press Enter to send message")]),

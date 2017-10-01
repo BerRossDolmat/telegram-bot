@@ -17,24 +17,30 @@ class BotManController extends Controller
 
         $botman->hears('ssl-info {domain}', function($bot, $domain) {
             $bot->types();
+            $domain = str_replace(['http://', 'https://', 'www.', '/'], '', $domain);
             if(!filter_var(gethostbyname($domain), FILTER_VALIDATE_IP))
             {
                 return $bot->reply('Error! Check domain again.');
             }
-            $ssl_info = SslCertificate::createForHostName($domain);
+            try {
+                $ssl_info = SslCertificate::createForHostName($domain);
 
-            $message = 'Issuer: '.$ssl_info->getIssuer()."\n\n";
+                $message = 'Issuer: '.$ssl_info->getIssuer()."\n\n";
 
-            $is_valid = $ssl_info->isValid() ? 'true' : 'false';
-            $message .= 'Is Valid: '.$is_valid."\n\n";
+                $is_valid = $ssl_info->isValid() ? 'true' : 'false';
+                $message .= 'Is Valid: '.$is_valid."\n\n";
 
-            $now = Carbon::now();
-            $expirationDate = $ssl_info->expirationDate()->diffInDays($now);
+                $now = Carbon::now();
+                $expirationDate = $ssl_info->expirationDate()->diffInDays($now);
 
-            $message .= 'Expired In: '.$expirationDate." days\n\n";
+                $message .= 'Expired In: '.$expirationDate." days\n\n";
+            } catch (\Exception $e) {
+                $message = 'Error! Check domain again.';
+            }
             $bot->reply($message);
         });
-        $botman->hears('subscribe', function($bot) {
+        $botman->hears('/subscribe', function($bot) {
+            $bot->types();
             $user = $bot->getUser();
             $user_id = $user->getId();
             $username = $user->getUsername();
@@ -50,9 +56,14 @@ class BotManController extends Controller
                     'first_name' => $first_name,
                     'last_name' => $last_name
                 ]);
+                $msg = 'You successfully subscribed on the mailing of messages from the admin!';
+            } else {
+                $msg = 'You are already subscribed.';
             }
+            $bot->reply($msg);
         });
-        $botman->hears('unsubscribe', function($bot) {
+        $botman->hears('/unsubscribe', function($bot) {
+            $bot->types();
             $user = $bot->getUser();
             $user_id = $user->getId();
             $username = $user->getUsername();
@@ -60,10 +71,21 @@ class BotManController extends Controller
             $last_name = $user->getLastName();
 
             $subscribed_user = SubscribedUser::where('telegram_id', $user_id)->first();
-
             if ($subscribed_user) {
                 $subscribed_user->delete();
+                $msg = 'You successfully unsubscribed on the mailing of messages from the admin!';
+            } else {
+                $msg = 'You are already subscribed.';
             }
+            $bot->reply($msg);
+        });
+        $botman->hears('/help', function($bot) {
+            $bot->types();
+            $msg = "You cancontrol this bot with next commands:\n\n";
+            $msg .= "ssl-info {domain} - accept info about ssl certificate.\n";
+            $msg .= "/subscribe - subscribed to messages from admin.\n";
+            $msg .= "/unsubscribe - unsubscribed from messages from admin.\n";
+            $bot->reply($msg);
         });
 
         $botman->listen();
